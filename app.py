@@ -86,7 +86,7 @@ st.markdown(f"""
         <div class="metric-value">{num_sources}개</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">⚠️ 고위험 건물 수</div>
+        <div class="metric-title">⚠️ 고위험 건물 수 (90점 기준)</div>
         <div class="metric-value">{num_detections}건</div>
     </div>
     <div class="metric-box">
