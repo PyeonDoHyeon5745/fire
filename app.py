@@ -100,72 +100,45 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 
-# -------------------------------
-# 📊 SHAP 기반 중요도 데이터 입력
-# -------------------------------
-data = {
-    '항목': ['노후도', '화재하중', '층수', '위험물', '자동감지', '업종', '구조', '제연', '자동소화'],
-    '가중치': [26.47, 19.61, 12.75, 10.78, 10.78, 9.8, 5.88, 2.94, 0.98]
-}
+# 📊 전체 피처 중요도 데이터
+labels = [
+    '노후도', '화재하중', '업종', '위험물', '자동감지',
+    '층수', '구조', '제연', '자동소화', '피난',
+    '소방접근성', '위험지역'
+]
+values = [
+    26.47, 19.61, 9.8, 10.78, 10.78,
+    12.75, 5.88, 2.94, 0.98, 0.0,
+    0.0, 0.0
+]
 
-df = pd.DataFrame(data)
+# 정렬된 데이터프레임 생성
+df = pd.DataFrame({'항목': labels, '중요도': values})
+df_sorted = df.sort_values(by='중요도', ascending=True)
 
-# -------------------------------
-# 🎨 컬러 설정
-# -------------------------------
-colors = ['#FF6B6B', '#FFA94D', '#FFD43B', '#69DB7C', '#748FFC', '#5C7CFA', '#9775FA', '#D0BFFF', '#A5D8FF']
+# 눈에 잘 띄는 색상 팔레트 (0%도 강조됨)
+colors = ['#CED4DA', '#CED4DA', '#CED4DA'] + [  # 0%는 회색
+    '#4D96FF', '#38BDF8', '#16A34A', '#FACC15', '#F97316',
+    '#EF4444', '#E11D48', '#A855F7', '#0EA5E9', '#FF6B6B'
+]
 
-# -------------------------------
-# 📈 도넛 차트 생성
-# -------------------------------
-donut_fig = go.Figure(data=[go.Pie(
-    labels=df['항목'],
-    values=df['가중치'],
-    hole=0.6,
-    marker_colors=colors,
-    textinfo='label+percent',
-    insidetextorientation='radial'
-)])
+# 🎯 수평 막대그래프 출력
+st.markdown("### 📊 예측 피처 중요도 (전체 변수 포함)")
 
-donut_fig.update_layout(
-    title_text='📊 예측 피처 중요도 (도넛 차트)',
-    annotations=[dict(text='Feature 중요도', x=0.5, y=0.5, font_size=15, showarrow=False)],
-    showlegend=False,
-    margin=dict(t=40, b=10, l=0, r=0)
-)
-
-# -------------------------------
-# 📊 막대그래프 생성 (가중치 순 정렬)
-# -------------------------------
-bar_df = df.sort_values(by='가중치', ascending=True)
-
-bar_fig = go.Figure(go.Bar(
-    x=bar_df['가중치'],
-    y=bar_df['항목'],
+fig_bar = go.Figure(go.Bar(
+    x=df_sorted['중요도'],
+    y=df_sorted['항목'],
     orientation='h',
-    marker_color=colors[:len(bar_df)],
-    text=bar_df['가중치'].astype(str) + '%',
+    marker_color=colors[:len(df_sorted)],
+    text=[f"{v:.2f}%" for v in df_sorted['중요도']],
     textposition='auto'
 ))
 
-bar_fig.update_layout(
-    title='📋 예측 피처 중요도 (막대그래프)',
+fig_bar.update_layout(
     xaxis_title='중요도 (%)',
     yaxis_title='',
-    margin=dict(t=40, b=20, l=0, r=0)
+    height=600,
+    margin=dict(t=40, b=40, l=60, r=10)
 )
 
-# -------------------------------
-# 📌 Streamlit 시각화 영역
-# -------------------------------
-st.markdown("## 🎯 예측 피처 중요도 시각화")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.plotly_chart(donut_fig, use_container_width=True)
-
-with col2:
-    st.plotly_chart(bar_fig, use_container_width=True)
-
-
+st.plotly_chart(fig_bar, use_container_width=True)
