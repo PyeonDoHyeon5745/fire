@@ -76,7 +76,7 @@ st.markdown("""
 # ✅ 박스 4개 (더미 값)
 num_sources = 128
 num_detections = 64
-num_types = 5
+num_types = 90
 success_rate = 87.5
 
 st.markdown(f"""
@@ -90,8 +90,8 @@ st.markdown(f"""
         <div class="metric-value">{num_detections}건</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">📊 오늘의 날씨</div>
-        <div class="metric-value">{num_types}종</div>
+        <div class="metric-title">📊 실제 재화재 탐지율</div>
+        <div class="metric-value">{num_types}%</div>
     </div>
     <div class="metric-box">
         <div class="metric-title">📈 분석 성공률</div>
