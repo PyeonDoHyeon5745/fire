@@ -95,6 +95,6 @@ st.markdown(f"""
 
 # 🔽 아래에 시각화 삽입 예정
 st.markdown("---")
-st.markdown("### 📊 재화재 통계 시각화 ")
+st.markdown("### 📊 분석 시각화 자료")
 # (여기에 그래프나 표 삽입)
 
