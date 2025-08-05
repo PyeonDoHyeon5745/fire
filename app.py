@@ -174,3 +174,4 @@ plt.legend()
 # 📊 Streamlit에 표시
 st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
 st.pyplot(fig)
+ 
