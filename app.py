@@ -164,7 +164,7 @@ df = df[df['위험도_혼합'].notnull()]
 # 🎨 KDE 시각화
 fig, ax = plt.subplots(figsize=(8, 6))
 
-# ✅ 컬럼명 'RLPS_YN'으로 수정됨
+
 sns.kdeplot(data=df[df['RLPS_YN'] == 1], x='위험도_혼합', fill=True, label='재발생 O', color='skyblue')
 sns.kdeplot(data=df[df['RLPS_YN'] == 0], x='위험도_혼합', fill=True, label='재발생 X', color='orange')
 
