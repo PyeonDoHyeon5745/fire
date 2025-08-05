@@ -35,7 +35,7 @@ st.markdown("""
     }
 
     .metric-title {
-        font-size: 1.1rem;
+        font-size: 1.1rem; 
         font-weight: 600;
         color: #333;
         margin-bottom: 1rem;
