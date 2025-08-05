@@ -142,3 +142,35 @@ fig_bar.update_layout(
 )
 
 st.plotly_chart(fig_bar, use_container_width=True)
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+import streamlit as st
+import pandas as pd
+import io
+
+# 📁 서울 화재 분석용 CSV 불러오기
+df = pd.read_csv("seoul_fire_predict.csv")
+
+# 🔍 위험도_혼합 컬럼 숫자로 정제
+df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
+df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
+df = df[df['위험도_혼합'].notnull() & df['위험도_혼합'].apply(lambda x: isinstance(x, float))]
+
+# 🎨 Streamlit용 Seaborn 시각화 -> 이미지로 출력
+fig, ax = plt.subplots(figsize=(8, 6))
+
+# KDE plot
+sns.kdeplot(data=df[df['재발생'] == 1], x='위험도_혼합', fill=True, label='재발생 O', color='skyblue')
+sns.kdeplot(data=df[df['재발생'] == 0], x='위험도_혼합', fill=True, label='재발생 X', color='orange')
+
+# 레이아웃 및 제목
+plt.title('XGBoost 기반 혼합 위험도 분포', fontsize=16)
+plt.xlabel('혼합 위험도 점수', fontsize=13)
+plt.ylabel('밀도', fontsize=13)
+plt.legend()
+
+# 📊 Streamlit에 표시
+st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
+st.pyplot(fig)
