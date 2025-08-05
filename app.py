@@ -8,7 +8,7 @@ import os
 ##############################  🖥️ 페이지 설정 ##############################
 
 # 🖥️ 페이지 설정
-st.set_page_config(page_title="재화재 예측 분석 시스템", layout="wide", page_icon="⚠️")
+st.set_page_config(page_title="재화재 예측 분석 시스템", layout="wide", page_icon="⚠️") 
 
 # 🎨 스타일 정의
 st.markdown("""
