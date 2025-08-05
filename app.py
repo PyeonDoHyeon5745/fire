@@ -150,28 +150,26 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import pandas as pd
 
-# 📁 서울 화재 분석용 CSV 불러오기
+# 📁 CSV 불러오기
 df = pd.read_csv("seoul_fire_predict.csv")
 
-# 🔍 위험도_혼합 컬럼 숫자로 정제
+# 🔍 위험도_혼합 컬럼 정리
 df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
 df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
-df = df[df['위험도_혼합'].notnull() & df['위험도_혼합'].apply(lambda x: isinstance(x, float))]
+df = df[df['위험도_혼합'].notnull()]
 
-# 🎨 Streamlit용 Seaborn 시각화
+# 🎨 KDE 시각화
 fig, ax = plt.subplots(figsize=(8, 6))
 
-# KDE plot - ✅ 수정된 부분
+# ✅ 여기서 '재발생' 대신 'RLPS_YN'으로 고침
 sns.kdeplot(data=df[df['RLPS_YN'] == 1], x='위험도_혼합', fill=True, label='재발생 O', color='skyblue')
 sns.kdeplot(data=df[df['RLPS_YN'] == 0], x='위험도_혼합', fill=True, label='재발생 X', color='orange')
 
-# 레이아웃 및 제목
-plt.title('XGBoost 기반 혼합 위험도 분포', fontsize=16)
-plt.xlabel('혼합 위험도 점수', fontsize=13)
-plt.ylabel('밀도', fontsize=13)
+plt.title('XGBoost 기반 혼합 위험도 분포')
+plt.xlabel('혼합 위험도 점수')
+plt.ylabel('밀도')
 plt.legend()
 
-# 📊 Streamlit에 표시
+# 📊 Streamlit 출력
 st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
 st.pyplot(fig)
-
