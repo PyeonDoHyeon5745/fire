@@ -96,5 +96,76 @@ st.markdown(f"""
 # 🔽 아래에 시각화 삽입 예정
 st.markdown("---")
 st.markdown("### 📊 분석 시각화 자료")
-# (여기에 그래프나 표 삽입)
+import streamlit as st
+import plotly.graph_objects as go
+import pandas as pd
+
+# -------------------------------
+# 📊 SHAP 기반 중요도 데이터 입력
+# -------------------------------
+data = {
+    '항목': ['노후도', '화재하중', '층수', '위험물', '자동감지', '업종', '구조', '제연', '자동소화'],
+    '가중치': [26.47, 19.61, 12.75, 10.78, 10.78, 9.8, 5.88, 2.94, 0.98]
+}
+
+df = pd.DataFrame(data)
+
+# -------------------------------
+# 🎨 컬러 설정
+# -------------------------------
+colors = ['#FF6B6B', '#FFA94D', '#FFD43B', '#69DB7C', '#748FFC', '#5C7CFA', '#9775FA', '#D0BFFF', '#A5D8FF']
+
+# -------------------------------
+# 📈 도넛 차트 생성
+# -------------------------------
+donut_fig = go.Figure(data=[go.Pie(
+    labels=df['항목'],
+    values=df['가중치'],
+    hole=0.6,
+    marker_colors=colors,
+    textinfo='label+percent',
+    insidetextorientation='radial'
+)])
+
+donut_fig.update_layout(
+    title_text='📊 예측 피처 중요도 (도넛 차트)',
+    annotations=[dict(text='Feature 중요도', x=0.5, y=0.5, font_size=15, showarrow=False)],
+    showlegend=False,
+    margin=dict(t=40, b=10, l=0, r=0)
+)
+
+# -------------------------------
+# 📊 막대그래프 생성 (가중치 순 정렬)
+# -------------------------------
+bar_df = df.sort_values(by='가중치', ascending=True)
+
+bar_fig = go.Figure(go.Bar(
+    x=bar_df['가중치'],
+    y=bar_df['항목'],
+    orientation='h',
+    marker_color=colors[:len(bar_df)],
+    text=bar_df['가중치'].astype(str) + '%',
+    textposition='auto'
+))
+
+bar_fig.update_layout(
+    title='📋 예측 피처 중요도 (막대그래프)',
+    xaxis_title='중요도 (%)',
+    yaxis_title='',
+    margin=dict(t=40, b=20, l=0, r=0)
+)
+
+# -------------------------------
+# 📌 Streamlit 시각화 영역
+# -------------------------------
+st.markdown("## 🎯 예측 피처 중요도 시각화")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(donut_fig, use_container_width=True)
+
+with col2:
+    st.plotly_chart(bar_fig, use_container_width=True)
+
 
