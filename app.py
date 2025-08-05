@@ -74,10 +74,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ✅ 박스 4개 (더미 값)
-num_sources = 128
-num_detections = 64
-num_types = 90
-success_rate = 87.5
+num_sources = 4362
+num_detections = 75
+num_types = 97.2
+success_rate = 87.9
 
 st.markdown(f"""
 <div class="metric-container">
@@ -86,16 +86,16 @@ st.markdown(f"""
         <div class="metric-value">{num_sources}개</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">⚠️ 고위험 건물 예측 수</div>
+        <div class="metric-title">⚠️ 고위험 건물 수</div>
         <div class="metric-value">{num_detections}건</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">📊 실제 재화재 탐지율</div>
+        <div class="metric-title">📊 고위험 건물 재화재 비율</div>
         <div class="metric-value">{num_types}%</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">📈 분석 성공률</div>
-        <div class="metric-value">{success_rate:.1f}%</div>
+        <div class="metric-title">📈 상위 10% 화재 위험도 </div>
+        <div class="metric-value">{success_rate:.1f}점</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
