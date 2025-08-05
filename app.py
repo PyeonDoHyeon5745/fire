@@ -68,7 +68,7 @@ st.markdown("""
 # 🔥 제목
 st.markdown("""
 <div style="text-align: center; padding-top: 2rem;">
-    <h1 style="font-size: 2.8rem;"> 🔥 재화재 예측 분석 시스템</h1>
+    <h1 style="font-size: 2.8rem;"> 🔥 재화재 예측 분석 시스템 🔥</h1>
     <p style="font-size: 1.2rem; color: gray;">종합리포트</p>
 </div>
 """, unsafe_allow_html=True)
