@@ -147,46 +147,52 @@ st.plotly_chart(fig_bar, use_container_width=True)
 
 import streamlit as st
 import pandas as pd
-import plotly.figure_factory as ff
+import numpy as np
+import seaborn as sns
+import plotly.graph_objects as go
 
-# 📁 CSV 파일 로드
+# 📁 데이터 로드
 df = pd.read_csv("seoul_fire_predict.csv")
 
-# 🔢 위험도 정제
+# 🔢 정제
 df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
 df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
 df = df[df['위험도_혼합'].notnull()]
 
-# 📊 데이터 분할
-data_rlps_yes = df[df['RLPS_YN'] == 1]['위험도_혼합'].tolist()
-data_rlps_no = df[df['RLPS_YN'] == 0]['위험도_혼합'].tolist()
+# 🎯 KDE 계산 (seaborn으로)
+x1 = np.linspace(0, 100, 500)
+kde1 = sns.kdeplot(df[df['RLPS_YN'] == 1]['위험도_혼합'], bw_adjust=1).get_lines()[0].get_data()
+kde2 = sns.kdeplot(df[df['RLPS_YN'] == 0]['위험도_혼합'], bw_adjust=1).get_lines()[0].get_data()
+sns.plt.close()  # 백엔드 plot 닫기
 
-# 🎯 KDE Plotly 그래프 만들기
-fig_kde = ff.create_distplot(
-    [data_rlps_yes, data_rlps_no],
-    group_labels=['재발생 O', '재발생 X'],
-    show_hist=False,
-    show_rug=False,
-    colors=['#4D96FF', '#F97316']
-)
+# 🎨 Plotly로 다시 그리기
+fig = go.Figure()
 
-fig_kde.update_layout(
+fig.add_trace(go.Scatter(
+    x=kde1[0], y=kde1[1],
+    mode='lines',
+    fill='tozeroy',
+    name='재발생 O',
+    line=dict(color='skyblue')
+))
+
+fig.add_trace(go.Scatter(
+    x=kde2[0], y=kde2[1],
+    mode='lines',
+    fill='tozeroy',
+    name='재발생 X',
+    line=dict(color='orange')
+))
+
+fig.update_layout(
     title='XGBoost 기반 혼합 위험도 분포',
     xaxis_title='혼합 위험도 점수',
     yaxis_title='밀도',
     legend_title='재발생 여부',
-    height=600,
     template='plotly_white',
+    height=600,
     margin=dict(t=40, b=40, l=40, r=10)
 )
 
-# 📌 좌우 배치로 추가
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("### 📊 예측 피처 중요도 (예시)")
-    st.write("📌 여기에 중요도 그래프 들어갈 자리입니다.")  # 이미 있으니 생략해도 됨
-
-with col2:
-    st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
-    st.plotly_chart(fig_kde, use_container_width=True)
+st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
+st.plotly_chart(fig, use_container_width=True)
