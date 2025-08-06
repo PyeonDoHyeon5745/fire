@@ -150,6 +150,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt  # ✅ 필수
 
 # 📁 데이터 로드
 df = pd.read_csv("seoul_fire_predict.csv")
@@ -159,17 +160,21 @@ df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.
 df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
 df = df[df['위험도_혼합'].notnull()]
 
-# 🎯 KDE 계산 (seaborn으로)
-x1 = np.linspace(0, 100, 500)
-kde1 = sns.kdeplot(df[df['RLPS_YN'] == 1]['위험도_혼합'], bw_adjust=1).get_lines()[0].get_data()
-kde2 = sns.kdeplot(df[df['RLPS_YN'] == 0]['위험도_혼합'], bw_adjust=1).get_lines()[0].get_data()
-sns.plt.close()  # 백엔드 plot 닫기
+# 🎯 KDE 계산 (Seaborn → Plotly)
+sns.set_theme(style="white")
+ax = sns.kdeplot(df[df['RLPS_YN'] == 1]['위험도_혼합'], bw_adjust=1)
+x1, y1 = ax.lines[0].get_data()
+plt.close()
 
-# 🎨 Plotly로 다시 그리기
+ax = sns.kdeplot(df[df['RLPS_YN'] == 0]['위험도_혼합'], bw_adjust=1)
+x2, y2 = ax.lines[0].get_data()
+plt.close()
+
+# Plotly로 그리기
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(
-    x=kde1[0], y=kde1[1],
+    x=x1, y=y1,
     mode='lines',
     fill='tozeroy',
     name='재발생 O',
@@ -177,7 +182,7 @@ fig.add_trace(go.Scatter(
 ))
 
 fig.add_trace(go.Scatter(
-    x=kde2[0], y=kde2[1],
+    x=x2, y=y2,
     mode='lines',
     fill='tozeroy',
     name='재발생 X',
