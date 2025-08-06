@@ -147,10 +147,9 @@ st.plotly_chart(fig_bar, use_container_width=True)
 
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
+import plotly.figure_factory as ff
 
-# 📁 데이터 로드
+# 📁 CSV 파일 로드
 df = pd.read_csv("seoul_fire_predict.csv")
 
 # 🔢 위험도 정제
@@ -158,68 +157,36 @@ df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.
 df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
 df = df[df['위험도_혼합'].notnull()]
 
-# 📊 좌우 레이아웃
+# 📊 데이터 분할
+data_rlps_yes = df[df['RLPS_YN'] == 1]['위험도_혼합'].tolist()
+data_rlps_no = df[df['RLPS_YN'] == 0]['위험도_혼합'].tolist()
+
+# 🎯 KDE Plotly 그래프 만들기
+fig_kde = ff.create_distplot(
+    [data_rlps_yes, data_rlps_no],
+    group_labels=['재발생 O', '재발생 X'],
+    show_hist=False,
+    show_rug=False,
+    colors=['#4D96FF', '#F97316']
+)
+
+fig_kde.update_layout(
+    title='XGBoost 기반 혼합 위험도 분포',
+    xaxis_title='혼합 위험도 점수',
+    yaxis_title='밀도',
+    legend_title='재발생 여부',
+    height=600,
+    template='plotly_white',
+    margin=dict(t=40, b=40, l=40, r=10)
+)
+
+# 📌 좌우 배치로 추가
 col1, col2 = st.columns(2)
 
-# ✅ 왼쪽: 예측 피처 중요도
 with col1:
-    st.markdown("### 📊 예측 피처 중요도 (전체 변수 포함)")
+    st.markdown("### 📊 예측 피처 중요도 (예시)")
+    st.write("📌 여기에 중요도 그래프 들어갈 자리입니다.")  # 이미 있으니 생략해도 됨
 
-    labels = [
-        '노후도', '화재하중', '업종', '위험물', '자동감지',
-        '층수', '구조', '제연', '자동소화', '피난',
-        '소방접근성', '위험지역'
-    ]
-    values = [
-        26.47, 19.61, 9.8, 10.78, 10.78,
-        12.75, 5.88, 2.94, 0.98, 0.0,
-        0.0, 0.0
-    ]
-
-    df_imp = pd.DataFrame({'항목': labels, '중요도': values})
-    df_imp = df_imp.sort_values(by='중요도', ascending=True)
-
-    fig_feat = go.Figure(go.Bar(
-        x=df_imp['중요도'],
-        y=df_imp['항목'],
-        orientation='h',
-        marker_color='indianred',
-        text=[f"{v:.2f}%" for v in df_imp['중요도']],
-        textposition='auto'
-    ))
-
-    fig_feat.update_layout(
-        xaxis_title='중요도 (%)',
-        yaxis_title='',
-        height=600,
-        margin=dict(t=40, b=40, l=60, r=10)
-    )
-
-    st.plotly_chart(fig_feat, use_container_width=True)
-
-
-# ✅ 오른쪽: KDE 분포 그래프 (Plotly로)
 with col2:
-    st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포 (서울)")
-
-    # KDE 비슷한 효과를 위한 히스토그램 + 커널 추정
-    fig_kde = px.histogram(
-        df,
-        x='위험도_혼합',
-        color='RLPS_YN',
-        nbins=40,
-        opacity=0.6,
-        barmode='overlay',
-        color_discrete_map={1: 'skyblue', 0: 'orange'},
-        labels={'RLPS_YN': '재발생 여부'}
-    )
-
-    fig_kde.update_layout(
-        xaxis_title='혼합 위험도 점수',
-        yaxis_title='빈도 (건물 수)',
-        legend_title='재발생 여부',
-        height=600,
-        margin=dict(t=40, b=40, l=40, r=10)
-    )
-
+    st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
     st.plotly_chart(fig_kde, use_container_width=True)
