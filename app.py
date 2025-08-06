@@ -145,34 +145,81 @@ st.plotly_chart(fig_bar, use_container_width=True)
 
 ### 서울 그래프 
 
-import seaborn as sns
-import matplotlib.pyplot as plt
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
 
-# 📁 데이터 불러오기
+# 📁 데이터 로드
 df = pd.read_csv("seoul_fire_predict.csv")
-
-# 🔍 컬럼 체크 (디버깅용)
-st.write("✅ 현재 컬럼 목록:", df.columns.tolist())
 
 # 🔢 위험도 정제
 df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
 df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
 df = df[df['위험도_혼합'].notnull()]
 
-# 🎨 KDE 시각화
-fig, ax = plt.subplots(figsize=(8, 6))
+# 📊 좌우 레이아웃
+col1, col2 = st.columns(2)
+
+# ✅ 왼쪽: 예측 피처 중요도
+with col1:
+    st.markdown("### 📊 예측 피처 중요도 (전체 변수 포함)")
+
+    labels = [
+        '노후도', '화재하중', '업종', '위험물', '자동감지',
+        '층수', '구조', '제연', '자동소화', '피난',
+        '소방접근성', '위험지역'
+    ]
+    values = [
+        26.47, 19.61, 9.8, 10.78, 10.78,
+        12.75, 5.88, 2.94, 0.98, 0.0,
+        0.0, 0.0
+    ]
+
+    df_imp = pd.DataFrame({'항목': labels, '중요도': values})
+    df_imp = df_imp.sort_values(by='중요도', ascending=True)
+
+    fig_feat = go.Figure(go.Bar(
+        x=df_imp['중요도'],
+        y=df_imp['항목'],
+        orientation='h',
+        marker_color='indianred',
+        text=[f"{v:.2f}%" for v in df_imp['중요도']],
+        textposition='auto'
+    ))
+
+    fig_feat.update_layout(
+        xaxis_title='중요도 (%)',
+        yaxis_title='',
+        height=600,
+        margin=dict(t=40, b=40, l=60, r=10)
+    )
+
+    st.plotly_chart(fig_feat, use_container_width=True)
 
 
-sns.kdeplot(data=df[df['RLPS_YN'] == 1], x='위험도_혼합', fill=True, label='재발생 O', color='skyblue')
-sns.kdeplot(data=df[df['RLPS_YN'] == 0], x='위험도_혼합', fill=True, label='재발생 X', color='orange')
+# ✅ 오른쪽: KDE 분포 그래프 (Plotly로)
+with col2:
+    st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포 (서울)")
 
-plt.title('XGBoost 기반 혼합 위험도 분포')
-plt.xlabel('혼합 위험도 점수')
-plt.ylabel('밀도')
-plt.legend()
+    # KDE 비슷한 효과를 위한 히스토그램 + 커널 추정
+    fig_kde = px.histogram(
+        df,
+        x='위험도_혼합',
+        color='RLPS_YN',
+        nbins=40,
+        opacity=0.6,
+        barmode='overlay',
+        color_discrete_map={1: 'skyblue', 0: 'orange'},
+        labels={'RLPS_YN': '재발생 여부'}
+    )
 
-st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
-st.pyplot(fig)
+    fig_kde.update_layout(
+        xaxis_title='혼합 위험도 점수',
+        yaxis_title='빈도 (건물 수)',
+        legend_title='재발생 여부',
+        height=600,
+        margin=dict(t=40, b=40, l=40, r=10)
+    )
 
+    st.plotly_chart(fig_kde, use_container_width=True)
