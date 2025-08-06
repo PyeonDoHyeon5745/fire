@@ -123,7 +123,7 @@ colors = ['#CED4DA', '#CED4DA', '#CED4DA'] + [  # 0%는 회색
 ]
 
 # 🎯 수평 막대그래프 출력
-st.markdown("### 📊 예측 피처 중요도 (전체 변수 포함)")
+st.markdown("### 재화재 예측 중요 변수")
 
 fig_bar = go.Figure(go.Bar(
     x=df_sorted['중요도'],
@@ -190,8 +190,8 @@ fig.add_trace(go.Scatter(
 ))
 
 fig.update_layout(
-    title='XGBoost 기반 혼합 위험도 분포',
-    xaxis_title='혼합 위험도 점수',
+    title='서울 재화재 예측 분포',
+    xaxis_title='재화재 점수',
     yaxis_title='밀도',
     legend_title='재발생 여부',
     template='plotly_white',
@@ -199,5 +199,5 @@ fig.update_layout(
     margin=dict(t=40, b=40, l=40, r=10)
 )
 
-st.markdown("### 🔥 XGBoost 기반 혼합 위험도 분포")
+st.markdown("### 🔥 서울 재화재 예측 분포 🔥")
 st.plotly_chart(fig, use_container_width=True)
