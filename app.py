@@ -4,8 +4,10 @@ import folium
 from streamlit_folium import st_folium
 import math
 import os
-
-##############################  🖥️ 페이지 설정 ##############################
+import plotly.graph_objects as go
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
 
 # 🖥️ 페이지 설정
 st.set_page_config(page_title="재화재 예측 분석 시스템", layout="wide", page_icon="⚠️") 
@@ -59,14 +61,14 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 📌 핵심지표 요약 제목 추가
+# 📌 핵심지표 요약 제목
 st.markdown("""
 <div style="text-align: left; margin-top: 3rem; margin-bottom: 1rem;">
     <h2 style="font-weight: 700; font-size: 1.5rem;">📌 핵심지표 요약</h2>
 </div>
 """, unsafe_allow_html=True)
 
-# ✅ 박스 4개 (더미 값)
+# ✅ 핵심지표 값
 num_sources = 4362
 num_detections = 75
 num_types = 97.2
@@ -87,117 +89,103 @@ st.markdown(f"""
         <div class="metric-value">{num_types}%</div>
     </div>
     <div class="metric-box">
-        <div class="metric-title">📈 상위 10% 화재 위험도 </div>
+        <div class="metric-title">📈 상위 10% 화재 위험도</div>
         <div class="metric-value">{success_rate:.1f}점</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# 🔽 아래에 시각화 삽입 예정
+# 📊 시각화 구간 시작
 st.markdown("---")
 st.markdown("### 📊 분석 시각화 자료")
-import streamlit as st
-import plotly.graph_objects as go
-import pandas as pd
 
-# 📊 전체 피처 중요도 데이터
-labels = [
-    '노후도', '화재하중', '업종', '위험물', '자동감지',
-    '층수', '구조', '제연', '자동소화', '피난',
-    '소방접근성', '위험지역'
-]
-values = [
-    26.47, 19.61, 9.8, 10.78, 10.78,
-    12.75, 5.88, 2.94, 0.98, 0.0,
-    0.0, 0.0
-]
+# ▶ 두 개 컬럼으로 나눔
+col1, col2 = st.columns(2)
 
-# 정렬된 데이터프레임 생성
-df = pd.DataFrame({'항목': labels, '중요도': values})
-df_sorted = df.sort_values(by='중요도', ascending=True)
+# 📊 피처 중요도 그래프 (왼쪽)
+with col1:
+    st.markdown("### 재화재 예측 중요 변수")
 
-# 눈에 잘 띄는 색상 팔레트 (0%도 강조됨)
-colors = ['#CED4DA', '#CED4DA', '#CED4DA'] + [  # 0%는 회색
-    '#4D96FF', '#38BDF8', '#16A34A', '#FACC15', '#F97316',
-    '#EF4444', '#E11D48', '#A855F7', '#0EA5E9', '#FF6B6B'
-]
+    labels = [
+        '노후도', '화재하중', '업종', '위험물', '자동감지',
+        '층수', '구조', '제연', '자동소화', '피난',
+        '소방접근성', '위험지역'
+    ]
+    values = [
+        26.47, 19.61, 9.8, 10.78, 10.78,
+        12.75, 5.88, 2.94, 0.98, 0.0,
+        0.0, 0.0
+    ]
 
-# 🎯 수평 막대그래프 출력
-st.markdown("### 재화재 예측 중요 변수")
+    df_feat = pd.DataFrame({'항목': labels, '중요도': values})
+    df_feat_sorted = df_feat.sort_values(by='중요도', ascending=True)
 
-fig_bar = go.Figure(go.Bar(
-    x=df_sorted['중요도'],
-    y=df_sorted['항목'],
-    orientation='h',
-    marker_color=colors[:len(df_sorted)],
-    text=[f"{v:.2f}%" for v in df_sorted['중요도']],
-    textposition='auto'
-))
+    colors = ['#CED4DA'] * 3 + [
+        '#4D96FF', '#38BDF8', '#16A34A', '#FACC15', '#F97316',
+        '#EF4444', '#E11D48', '#A855F7', '#0EA5E9', '#FF6B6B'
+    ]
 
-fig_bar.update_layout(
-    xaxis_title='중요도 (%)',
-    yaxis_title='',
-    height=600,
-    margin=dict(t=40, b=40, l=60, r=10)
-)
+    fig_bar = go.Figure(go.Bar(
+        x=df_feat_sorted['중요도'],
+        y=df_feat_sorted['항목'],
+        orientation='h',
+        marker_color=colors[:len(df_feat_sorted)],
+        text=[f"{v:.2f}%" for v in df_feat_sorted['중요도']],
+        textposition='auto'
+    ))
 
-st.plotly_chart(fig_bar, use_container_width=True)
+    fig_bar.update_layout(
+        xaxis_title='중요도 (%)',
+        yaxis_title='',
+        height=600,
+        margin=dict(t=40, b=40, l=60, r=10)
+    )
 
-### 서울 그래프 
+    st.plotly_chart(fig_bar, use_container_width=True)
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import plotly.graph_objects as go
-import matplotlib.pyplot as plt  # ✅ 필수
+# 📈 서울 KDE 분포 그래프 (오른쪽)
+with col2:
+    st.markdown("### 🔥 서울 재화재 예측 분포 🔥")
 
-# 📁 데이터 로드
-df = pd.read_csv("seoul_fire_predict.csv")
+    df_seoul = pd.read_csv("seoul_fire_predict.csv")
+    df_seoul['위험도_혼합'] = df_seoul['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
+    df_seoul['위험도_혼합'] = pd.to_numeric(df_seoul['위험도_혼합'], errors='coerce')
+    df_seoul = df_seoul[df_seoul['위험도_혼합'].notnull()]
 
-# 🔢 정제
-df['위험도_혼합'] = df['위험도_혼합'].astype(str).str.extract(r'(\d+\.\d+|\d+)')[0]
-df['위험도_혼합'] = pd.to_numeric(df['위험도_혼합'], errors='coerce')
-df = df[df['위험도_혼합'].notnull()]
+    sns.set_theme(style="white")
+    ax = sns.kdeplot(df_seoul[df_seoul['RLPS_YN'] == 1]['위험도_혼합'], bw_adjust=1)
+    x1, y1 = ax.lines[0].get_data()
+    plt.close()
 
-# 🎯 KDE 계산 (Seaborn → Plotly)
-sns.set_theme(style="white")
-ax = sns.kdeplot(df[df['RLPS_YN'] == 1]['위험도_혼합'], bw_adjust=1)
-x1, y1 = ax.lines[0].get_data()
-plt.close()
+    ax = sns.kdeplot(df_seoul[df_seoul['RLPS_YN'] == 0]['위험도_혼합'], bw_adjust=1)
+    x2, y2 = ax.lines[0].get_data()
+    plt.close()
 
-ax = sns.kdeplot(df[df['RLPS_YN'] == 0]['위험도_혼합'], bw_adjust=1)
-x2, y2 = ax.lines[0].get_data()
-plt.close()
+    fig_density = go.Figure()
+    fig_density.add_trace(go.Scatter(
+        x=x1, y=y1,
+        mode='lines',
+        fill='tozeroy',
+        name='재발생 O',
+        line=dict(color='skyblue')
+    ))
+    fig_density.add_trace(go.Scatter(
+        x=x2, y=y2,
+        mode='lines',
+        fill='tozeroy',
+        name='재발생 X',
+        line=dict(color='orange')
+    ))
 
-# Plotly로 그리기
-fig = go.Figure()
+    fig_density.update_layout(
+        title='서울 재화재 예측 분포',
+        xaxis_title='재화재 점수',
+        yaxis_title='밀도',
+        legend_title='재발생 여부',
+        template='plotly_white',
+        height=600,
+        margin=dict(t=40, b=40, l=40, r=10)
+    )
 
-fig.add_trace(go.Scatter(
-    x=x1, y=y1,
-    mode='lines',
-    fill='tozeroy',
-    name='재발생 O',
-    line=dict(color='skyblue')
-))
+    st.plotly_chart(fig_density, use_container_width=True)
 
-fig.add_trace(go.Scatter(
-    x=x2, y=y2,
-    mode='lines',
-    fill='tozeroy',
-    name='재발생 X',
-    line=dict(color='orange')
-))
-
-fig.update_layout(
-    title='서울 재화재 예측 분포',
-    xaxis_title='재화재 점수',
-    yaxis_title='밀도',
-    legend_title='재발생 여부',
-    template='plotly_white',
-    height=600,
-    margin=dict(t=40, b=40, l=40, r=10)
-)
-
-st.markdown("### 🔥 서울 재화재 예측 분포 🔥")
-st.plotly_chart(fig, use_container_width=True)
